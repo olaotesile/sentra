@@ -208,8 +208,8 @@ function App() {
   const handleCreateAlert = (type: AlertType, description: string, evidenceFile: File | null) => {
     if (!userLocation) return;
 
-    const evidenceTypes = ['photo', 'video', 'voice'] as const;
-    const randomEvidence = evidenceTypes[Math.floor(Math.random() * evidenceTypes.length)];
+    // Create a local URL for the evidence if it exists
+    const evidenceUrl = evidenceFile ? URL.createObjectURL(evidenceFile) : undefined;
 
     const newAlert: Alert = {
       id: Date.now().toString(),
@@ -223,7 +223,7 @@ function App() {
       upvotes: 0,
       downvotes: 0,
       resolved: false,
-      evidence: randomEvidence
+      evidence: evidenceUrl
     };
 
     setAlerts(prev => [newAlert, ...prev]);
