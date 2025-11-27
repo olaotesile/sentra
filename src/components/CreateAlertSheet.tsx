@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { X, Camera, Video, Mic, MapPin, Check, Trash2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Camera, Video, Mic, MapPin, Check, Trash2, Upload, Play, Square } from 'lucide-react';
 import type { AlertType, Location } from '../types';
 
 interface CreateAlertSheetProps {
@@ -23,9 +23,39 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
     const [description, setDescription] = useState('');
     const [evidence, setEvidence] = useState<File | null>(null);
     const [isRecording, setIsRecording] = useState(false);
+    const [audioURL, setAudioURL] = useState<string | null>(null);
+    const [locationName, setLocationName] = useState<string>('Fetching location...');
 
     const photoInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
+    // Fetch location name when user location changes
+    useEffect(() => {
+        if (userLocation && isOpen) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`)
+                .then(res => res.json())
+                .then(data => {
+                    const name = data.display_name || `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+                    setLocationName(name);
+                })
+                .catch(() => {
+                    setLocationName(`${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`);
+                });
+        }
+    }, [userLocation, isOpen]);
+
+    // Cleanup audio URLs on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (audioURL) {
+                URL.revokeObjectURL(audioURL);
+            }
+        };
+    }, [audioURL]);
 
     if (!isOpen) return null;
 
@@ -35,6 +65,10 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
             setSelectedType(null);
             setDescription('');
             setEvidence(null);
+            if (audioURL) {
+                URL.revokeObjectURL(audioURL);
+                setAudioURL(null);
+            }
             onClose();
         }
     };
@@ -42,19 +76,56 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setEvidence(e.target.files[0]);
+            setAudioURL(null); // Clear audio if file is selected
         }
     };
 
-    const handleVoiceRecord = () => {
+    const handleVoiceRecord = async () => {
         if (isRecording) {
+            // Stop recording
+            mediaRecorderRef.current?.stop();
             setIsRecording(false);
-            // Simulate saving recording
-            const blob = new Blob(["audio data"], { type: "audio/wav" });
-            const file = new File([blob], "voice_note.wav", { type: "audio/wav" });
-            setEvidence(file);
         } else {
-            setIsRecording(true);
-            // In a real app, we would start MediaRecorder here
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorderRef.current = mediaRecorder;
+                audioChunksRef.current = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunksRef.current.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+                    const audioFile = new File([audioBlob], "voice_note.wav", { type: "audio/wav" });
+                    const url = URL.createObjectURL(audioBlob);
+
+                    // Revoke old URL if exists
+                    if (audioURL) {
+                        URL.revokeObjectURL(audioURL);
+                    }
+
+                    setAudioURL(url);
+                    setEvidence(audioFile);
+
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                setIsRecording(true);
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Unable to access microphone. Please grant permission.');
+            }
+        }
+    };
+
+    const handlePlayAudio = () => {
+        if (audioURL && audioPlayerRef.current) {
+            audioPlayerRef.current.play();
         }
     };
 
@@ -92,6 +163,14 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                 style={{ display: 'none' }}
                 onChange={handleFileSelect}
             />
+            <input
+                type="file"
+                accept="image/*,video/*"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+            />
+            <audio ref={audioPlayerRef} src={audioURL || undefined} style={{ display: 'none' }} />
 
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
@@ -187,8 +266,8 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                         }}
                     />
 
-                    {/* Media Buttons */}
-                    <div style={{ display: 'flex', gap: '12px' }}>
+                    {/* Media Buttons Row 1 */}
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                         <button
                             className="icon-btn"
                             onClick={() => photoInputRef.current?.click()}
@@ -219,6 +298,25 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                         >
                             <Video size={20} /> Video
                         </button>
+                    </div>
+
+                    {/* Media Buttons Row 2 */}
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button
+                            className="icon-btn"
+                            onClick={() => fileInputRef.current?.click()}
+                            style={{
+                                background: 'rgba(255,255,255,0.08)',
+                                color: 'white',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                gap: '8px',
+                                flex: 1,
+                                fontSize: '14px'
+                            }}
+                        >
+                            <Upload size={20} /> Upload
+                        </button>
                         <button
                             className="icon-btn"
                             onClick={handleVoiceRecord}
@@ -233,7 +331,7 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                                 border: isRecording ? '1px solid #f4212e' : 'none'
                             }}
                         >
-                            <Mic size={20} /> {isRecording ? 'Stop' : 'Voice'}
+                            {isRecording ? <><Square size={20} /> Stop</> : <><Mic size={20} /> Voice</>}
                         </button>
                     </div>
 
@@ -249,14 +347,40 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                             alignItems: 'center',
                             justifyContent: 'space-between'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                                 <Check size={16} color="#1d9bf0" />
                                 <span style={{ fontSize: '14px', color: '#1d9bf0' }}>
-                                    {evidence.name} attached
+                                    {evidence.name}
                                 </span>
+                                {audioURL && (
+                                    <button
+                                        onClick={handlePlayAudio}
+                                        style={{
+                                            background: 'rgba(29, 155, 240, 0.2)',
+                                            border: '1px solid #1d9bf0',
+                                            borderRadius: '8px',
+                                            padding: '4px 12px',
+                                            color: '#1d9bf0',
+                                            cursor: 'pointer',
+                                            fontSize: '12px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            marginLeft: '8px'
+                                        }}
+                                    >
+                                        <Play size={12} /> Play
+                                    </button>
+                                )}
                             </div>
                             <button
-                                onClick={() => setEvidence(null)}
+                                onClick={() => {
+                                    setEvidence(null);
+                                    if (audioURL) {
+                                        URL.revokeObjectURL(audioURL);
+                                        setAudioURL(null);
+                                    }
+                                }}
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f4212e' }}
                             >
                                 <Trash2 size={16} />
@@ -278,18 +402,23 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                     </label>
                     <div style={{
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
                         gap: '8px',
                         background: 'rgba(239, 68, 68, 0.2)',
                         padding: '12px 16px',
                         borderRadius: '12px'
                     }}>
-                        <MapPin size={20} color="#ef4444" />
-                        <span style={{ fontSize: '14px', color: '#ffffff' }}>
-                            {userLocation
-                                ? `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`
-                                : 'Locating...'}
-                        </span>
+                        <MapPin size={20} color="#ef4444" style={{ marginTop: '2px', flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '14px', color: '#ffffff', marginBottom: '4px' }}>
+                                {userLocation
+                                    ? `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`
+                                    : 'Locating...'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
+                                {locationName}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

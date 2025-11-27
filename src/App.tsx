@@ -209,6 +209,7 @@ function App() {
     if (!userLocation) return;
 
     // Create a local URL for the evidence if it exists
+    // Note: We don't revoke this URL immediately as it needs to persist for the alert
     const evidenceUrl = evidenceFile ? URL.createObjectURL(evidenceFile) : undefined;
 
     const newAlert: Alert = {
