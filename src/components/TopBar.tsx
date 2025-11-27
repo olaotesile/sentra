@@ -8,15 +8,18 @@ interface TopBarProps {
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     return (
         <div style={{
-            position: 'absolute',
+            position: 'fixed',
             top: 0,
             left: 0,
             right: 0,
             padding: '16px 20px',
+            paddingTop: 'calc(16px + env(safe-area-inset-top))',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            zIndex: 'var(--z-overlay)'
+            zIndex: 'var(--z-overlay)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)',
+            pointerEvents: 'none'
         }}>
             <ShieldAlert color="var(--color-danger)" size={28} />
 
@@ -33,7 +36,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 Sentra
             </h1>
 
-            <button onClick={onMenuClick} className="icon-btn">
+            <button onClick={onMenuClick} className="icon-btn" style={{ pointerEvents: 'auto' }}>
                 <Menu size={24} />
             </button>
         </div>

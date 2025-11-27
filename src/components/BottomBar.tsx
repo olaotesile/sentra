@@ -9,14 +9,17 @@ interface BottomBarProps {
 export const BottomBar: React.FC<BottomBarProps> = ({ onCreateClick, onFeedClick }) => {
     return (
         <div style={{
-            position: 'absolute',
+            position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
             padding: '20px',
+            paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
             display: 'flex',
             gap: '12px',
-            zIndex: 'var(--z-overlay)'
+            zIndex: 'var(--z-overlay)',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
+            pointerEvents: 'none'
         }}>
             <button
                 onClick={onCreateClick}
@@ -34,7 +37,8 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onCreateClick, onFeedClick
                     justifyContent: 'center',
                     gap: '8px',
                     borderRadius: '12px',
-                    border: '1px solid transparent'
+                    border: '1px solid transparent',
+                    pointerEvents: 'auto'
                 }}
             >
                 <Plus size={20} />
@@ -59,7 +63,8 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onCreateClick, onFeedClick
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    pointerEvents: 'auto'
                 }}
             >
                 <Bell size={20} />
