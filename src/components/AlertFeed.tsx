@@ -45,15 +45,15 @@ export const AlertFeed: React.FC<AlertFeedProps> = ({ isOpen, onClose, alerts, o
 
             {/* Header */}
             <div style={{
-                padding: '0 24px 16px',
+                padding: '0 24px 12px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 borderBottom: '1px solid var(--color-border)'
             }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 800 }}>Alerts</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Alerts</h2>
                 <button onClick={onClose} className="icon-btn">
-                    <X size={24} />
+                    <X size={20} />
                 </button>
             </div>
 

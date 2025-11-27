@@ -111,7 +111,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({ userLocation, alerts
                         <Circle
                             key={`zone-${alert.id}`}
                             center={[alert.location.lat, alert.location.lng]}
-                            radius={300} // 300 meter radius
+                            radius={500} // 500 meter radius
                             pathOptions={{
                                 fillColor: threat.color,
                                 fillOpacity: threat.opacity,

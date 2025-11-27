@@ -32,6 +32,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({ onCreateClick, onFeedClick
                     fontWeight: 700,
                     whiteSpace: 'nowrap',
                     color: 'white',
+                    background: '#f4212e',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
