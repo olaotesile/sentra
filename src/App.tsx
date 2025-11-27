@@ -6,6 +6,7 @@ import { CreateAlertSheet } from './components/CreateAlertSheet';
 import { AlertFeed } from './components/AlertFeed';
 import { AlertDetailView } from './components/AlertDetailView';
 import { Sidebar } from './components/Sidebar';
+import { LocationPermissionPrompt } from './components/LocationPermissionPrompt';
 import type { Alert, AlertType, Location } from './types';
 
 // Mock Data with evidence field - Realistic Nigerian demo alerts
@@ -163,9 +164,13 @@ function App() {
   const [isFeedOpen, setIsFeedOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(true);
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
   useEffect(() => {
-    // Get user location
+    // Only start tracking location after permission is granted
+    if (!locationPermissionGranted) return;
+
     // Track user location continuously
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -187,7 +192,18 @@ function App() {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [locationPermissionGranted]);
+
+  const handleAllowLocation = () => {
+    setShowLocationPrompt(false);
+    setLocationPermissionGranted(true);
+  };
+
+  const handleDenyLocation = () => {
+    setShowLocationPrompt(false);
+    // Set fallback location
+    setUserLocation({ lat: 6.5244, lng: 3.3792 });
+  };
 
   const handleCreateAlert = (type: AlertType, description: string) => {
     if (!userLocation) return;
@@ -280,6 +296,12 @@ function App() {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+      />
+
+      <LocationPermissionPrompt
+        isOpen={showLocationPrompt}
+        onAllow={handleAllowLocation}
+        onDeny={handleDenyLocation}
       />
     </div>
   );
