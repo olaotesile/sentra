@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { X, Camera, Video, Mic, MapPin } from 'lucide-react';
-import type { AlertType } from '../types';
+import React, { useState, useRef } from 'react';
+import { X, Camera, Video, Mic, MapPin, Check, Trash2 } from 'lucide-react';
+import type { AlertType, Location } from '../types';
 
 interface CreateAlertSheetProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (type: AlertType, description: string) => void;
+    onSubmit: (type: AlertType, description: string, evidence: File | null) => void;
+    userLocation: Location | null;
 }
 
 const ALERT_TYPES: { type: AlertType; label: string }[] = [
@@ -17,18 +18,43 @@ const ALERT_TYPES: { type: AlertType; label: string }[] = [
     { type: 'other', label: 'Other' },
 ];
 
-export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onClose, onSubmit }) => {
+export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onClose, onSubmit, userLocation }) => {
     const [selectedType, setSelectedType] = useState<AlertType | null>(null);
     const [description, setDescription] = useState('');
+    const [evidence, setEvidence] = useState<File | null>(null);
+    const [isRecording, setIsRecording] = useState(false);
+
+    const photoInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
 
     const handleSubmit = () => {
         if (selectedType) {
-            onSubmit(selectedType, description);
+            onSubmit(selectedType, description, evidence);
             setSelectedType(null);
             setDescription('');
+            setEvidence(null);
             onClose();
+        }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setEvidence(e.target.files[0]);
+        }
+    };
+
+    const handleVoiceRecord = () => {
+        if (isRecording) {
+            setIsRecording(false);
+            // Simulate saving recording
+            const blob = new Blob(["audio data"], { type: "audio/wav" });
+            const file = new File([blob], "voice_note.wav", { type: "audio/wav" });
+            setEvidence(file);
+        } else {
+            setIsRecording(true);
+            // In a real app, we would start MediaRecorder here
         }
     };
 
@@ -49,6 +75,24 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
             flexDirection: 'column',
             color: 'white'
         }}>
+            {/* Hidden Inputs */}
+            <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                ref={photoInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+            />
+            <input
+                type="file"
+                accept="video/*"
+                capture="environment"
+                ref={videoInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+            />
+
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Create New Alert</h2>
@@ -71,7 +115,7 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '20px',
-                paddingBottom: '20px' // Add some padding at the bottom of scroll area
+                paddingBottom: '20px'
             }}>
                 {/* Alert Type Selection */}
                 <div>
@@ -147,6 +191,7 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button
                             className="icon-btn"
+                            onClick={() => photoInputRef.current?.click()}
                             style={{
                                 background: 'rgba(255,255,255,0.08)',
                                 color: 'white',
@@ -161,6 +206,7 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                         </button>
                         <button
                             className="icon-btn"
+                            onClick={() => videoInputRef.current?.click()}
                             style={{
                                 background: 'rgba(255,255,255,0.08)',
                                 color: 'white',
@@ -175,19 +221,48 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                         </button>
                         <button
                             className="icon-btn"
+                            onClick={handleVoiceRecord}
                             style={{
-                                background: 'rgba(255,255,255,0.08)',
-                                color: 'white',
+                                background: isRecording ? 'rgba(244, 33, 46, 0.2)' : 'rgba(255,255,255,0.08)',
+                                color: isRecording ? '#f4212e' : 'white',
                                 padding: '12px',
                                 borderRadius: '12px',
                                 gap: '8px',
                                 flex: 1,
-                                fontSize: '14px'
+                                fontSize: '14px',
+                                border: isRecording ? '1px solid #f4212e' : 'none'
                             }}
                         >
-                            <Mic size={20} /> Voice
+                            <Mic size={20} /> {isRecording ? 'Stop' : 'Voice'}
                         </button>
                     </div>
+
+                    {/* Evidence Preview */}
+                    {evidence && (
+                        <div style={{
+                            marginTop: '12px',
+                            background: 'rgba(29, 155, 240, 0.1)',
+                            border: '1px solid rgba(29, 155, 240, 0.3)',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Check size={16} color="#1d9bf0" />
+                                <span style={{ fontSize: '14px', color: '#1d9bf0' }}>
+                                    {evidence.name} attached
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setEvidence(null)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f4212e' }}
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Location */}
@@ -210,7 +285,11 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                         borderRadius: '12px'
                     }}>
                         <MapPin size={20} color="#ef4444" />
-                        <span style={{ fontSize: '14px', color: '#ffffff' }}>123 Main St, Anytown, USA</span>
+                        <span style={{ fontSize: '14px', color: '#ffffff' }}>
+                            {userLocation
+                                ? `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`
+                                : 'Locating...'}
+                        </span>
                     </div>
                 </div>
             </div>

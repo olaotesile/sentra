@@ -205,7 +205,7 @@ function App() {
     setUserLocation({ lat: 6.5244, lng: 3.3792 });
   };
 
-  const handleCreateAlert = (type: AlertType, description: string) => {
+  const handleCreateAlert = (type: AlertType, description: string, evidenceFile: File | null) => {
     if (!userLocation) return;
 
     const evidenceTypes = ['photo', 'video', 'voice'] as const;
@@ -271,6 +271,7 @@ function App() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={handleCreateAlert}
+        userLocation={userLocation}
       />
 
       <AlertFeed
