@@ -65,6 +65,17 @@ const createCustomIcon = (type: string) => {
 
 export const MapComponent: React.FC<MapComponentProps> = ({ userLocation, alerts }) => {
     const mapRef = React.useRef<L.Map | null>(null);
+    const hasInitiallyFlownToLocation = React.useRef(false);
+
+    // Automatically fly to user location when first obtained
+    React.useEffect(() => {
+        if (mapRef.current && userLocation && !hasInitiallyFlownToLocation.current) {
+            mapRef.current.flyTo([userLocation.lat, userLocation.lng], 15, {
+                duration: 1.5
+            });
+            hasInitiallyFlownToLocation.current = true;
+        }
+    }, [userLocation]);
 
     const handleRecenter = () => {
         if (mapRef.current && userLocation) {
