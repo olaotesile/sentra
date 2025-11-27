@@ -44,16 +44,13 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
             padding: '24px',
             paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
             zIndex: 'var(--z-modal)',
-            maxHeight: '90vh',
-            height: 'auto',
+            maxHeight: '85vh',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
-            color: 'white',
-            overflowY: 'auto'
+            color: 'white'
         }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Create New Alert</h2>
                 <button
                     onClick={onClose}
@@ -67,167 +64,178 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
                 </button>
             </div>
 
-            {/* Alert Type Selection */}
-            <div>
-                <label style={{
-                    display: 'block',
-                    marginBottom: '12px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontWeight: 600
-                }}>
-                    Select Alert Type
-                </label>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '10px'
-                }}>
-                    {ALERT_TYPES.map((item) => (
+            {/* Scrollable Content */}
+            <div style={{
+                overflowY: 'auto',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                paddingBottom: '20px' // Add some padding at the bottom of scroll area
+            }}>
+                {/* Alert Type Selection */}
+                <div>
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '12px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontWeight: 600
+                    }}>
+                        Select Alert Type
+                    </label>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '10px'
+                    }}>
+                        {ALERT_TYPES.map((item) => (
+                            <button
+                                key={item.type}
+                                onClick={() => setSelectedType(item.type)}
+                                style={{
+                                    background: selectedType === item.type ? '#f4212e' : 'rgba(255,255,255,0.1)',
+                                    border: selectedType === item.type ? '2px solid #f4212e' : '1px solid rgba(255,255,255,0.2)',
+                                    color: 'white',
+                                    padding: '12px 8px',
+                                    borderRadius: '24px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Evidence Section */}
+                <div>
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '12px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontWeight: 600
+                    }}>
+                        Add Evidence <span style={{ color: '#888' }}>(Optional)</span>
+                    </label>
+
+                    {/* Description Text Area */}
+                    <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Describe what's happening..."
+                        style={{
+                            width: '100%',
+                            background: 'rgba(255,255,255,0.08)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            borderRadius: '16px',
+                            padding: '16px',
+                            color: 'white',
+                            fontFamily: 'inherit',
+                            resize: 'none',
+                            height: '120px',
+                            fontSize: '15px',
+                            marginBottom: '12px'
+                        }}
+                    />
+
+                    {/* Media Buttons */}
+                    <div style={{ display: 'flex', gap: '12px' }}>
                         <button
-                            key={item.type}
-                            onClick={() => setSelectedType(item.type)}
+                            className="icon-btn"
                             style={{
-                                background: selectedType === item.type ? '#f4212e' : 'rgba(255,255,255,0.1)',
-                                border: selectedType === item.type ? '2px solid #f4212e' : '1px solid rgba(255,255,255,0.2)',
+                                background: 'rgba(255,255,255,0.08)',
                                 color: 'white',
-                                padding: '12px 8px',
-                                borderRadius: '24px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                gap: '8px',
+                                flex: 1,
                                 fontSize: '14px'
                             }}
                         >
-                            {item.label}
+                            <Camera size={20} /> Photo
                         </button>
-                    ))}
+                        <button
+                            className="icon-btn"
+                            style={{
+                                background: 'rgba(255,255,255,0.08)',
+                                color: 'white',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                gap: '8px',
+                                flex: 1,
+                                fontSize: '14px'
+                            }}
+                        >
+                            <Video size={20} /> Video
+                        </button>
+                        <button
+                            className="icon-btn"
+                            style={{
+                                background: 'rgba(255,255,255,0.08)',
+                                color: 'white',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                gap: '8px',
+                                flex: 1,
+                                fontSize: '14px'
+                            }}
+                        >
+                            <Mic size={20} /> Voice
+                        </button>
+                    </div>
+                </div>
+
+                {/* Location */}
+                <div>
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontWeight: 600
+                    }}>
+                        Location
+                    </label>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        padding: '12px 16px',
+                        borderRadius: '12px'
+                    }}>
+                        <MapPin size={20} color="#ef4444" />
+                        <span style={{ fontSize: '14px', color: '#ffffff' }}>123 Main St, Anytown, USA</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Evidence Section */}
-            <div>
-                <label style={{
-                    display: 'block',
-                    marginBottom: '12px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontWeight: 600
-                }}>
-                    Add Evidence <span style={{ color: '#888' }}>(Optional)</span>
-                </label>
-
-                {/* Description Text Area */}
-                <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe what's happening..."
+            {/* Submit Button - Fixed at bottom */}
+            <div style={{ paddingTop: '10px', flexShrink: 0 }}>
+                <button
                     style={{
                         width: '100%',
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: '16px',
-                        padding: '16px',
+                        background: '#f4212e',
                         color: 'white',
-                        fontFamily: 'inherit',
-                        resize: 'none',
-                        height: '120px',
-                        fontSize: '15px',
-                        marginBottom: '12px'
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        cursor: selectedType ? 'pointer' : 'not-allowed',
+                        opacity: selectedType ? 1 : 0.5,
                     }}
-                />
-
-                {/* Media Buttons */}
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                        className="icon-btn"
-                        style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            color: 'white',
-                            padding: '12px',
-                            borderRadius: '12px',
-                            gap: '8px',
-                            flex: 1,
-                            fontSize: '14px'
-                        }}
-                    >
-                        <Camera size={20} /> Photo
-                    </button>
-                    <button
-                        className="icon-btn"
-                        style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            color: 'white',
-                            padding: '12px',
-                            borderRadius: '12px',
-                            gap: '8px',
-                            flex: 1,
-                            fontSize: '14px'
-                        }}
-                    >
-                        <Video size={20} /> Video
-                    </button>
-                    <button
-                        className="icon-btn"
-                        style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            color: 'white',
-                            padding: '12px',
-                            borderRadius: '12px',
-                            gap: '8px',
-                            flex: 1,
-                            fontSize: '14px'
-                        }}
-                    >
-                        <Mic size={20} /> Voice
-                    </button>
-                </div>
+                    disabled={!selectedType}
+                    onClick={handleSubmit}
+                >
+                    Submit Alert
+                </button>
             </div>
-
-            {/* Location */}
-            <div>
-                <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontWeight: 600
-                }}>
-                    Location
-                </label>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: 'rgba(239, 68, 68, 0.2)',
-                    padding: '12px 16px',
-                    borderRadius: '12px'
-                }}>
-                    <MapPin size={20} color="#ef4444" />
-                    <span style={{ fontSize: '14px', color: '#ffffff' }}>123 Main St, Anytown, USA</span>
-                </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-                style={{
-                    width: '100%',
-                    background: '#f4212e',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    cursor: selectedType ? 'pointer' : 'not-allowed',
-                    opacity: selectedType ? 1 : 0.5,
-                    marginTop: '8px'
-                }}
-                disabled={!selectedType}
-                onClick={handleSubmit}
-            >
-                Submit Alert
-            </button>
         </div>
     );
 };
