@@ -152,7 +152,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({ userLocation, alerts
                     onClick={handleRecenter}
                     style={{
                         position: 'absolute',
-                        bottom: '120px',
+                        bottom: '180px',
                         right: '20px',
                         width: '48px',
                         height: '48px',

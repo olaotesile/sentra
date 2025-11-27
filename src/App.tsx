@@ -166,7 +166,8 @@ function App() {
 
   useEffect(() => {
     // Get user location
-    navigator.geolocation.getCurrentPosition(
+    // Track user location continuously
+    const watchId = navigator.geolocation.watchPosition(
       (position) => {
         setUserLocation({
           lat: position.coords.latitude,
@@ -175,10 +176,17 @@ function App() {
       },
       (error) => {
         console.error("Error getting location", error);
-        // Fallback to Lagos for demo
-        setUserLocation({ lat: 6.5244, lng: 3.3792 });
+        // Only fallback if we don't have a location yet
+        setUserLocation(prev => prev || { lat: 6.5244, lng: 3.3792 });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
+
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   const handleCreateAlert = (type: AlertType, description: string) => {

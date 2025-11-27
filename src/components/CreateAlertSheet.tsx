@@ -42,12 +42,15 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
             borderTopLeftRadius: '24px',
             borderTopRightRadius: '24px',
             padding: '24px',
+            paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
             zIndex: 'var(--z-modal)',
             maxHeight: '90vh',
+            height: 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
-            color: 'white'
+            color: 'white',
+            overflowY: 'auto'
         }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
