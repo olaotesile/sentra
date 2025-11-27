@@ -34,7 +34,7 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
 
     return (
         <div className="animate-slide-up" style={{
-            position: 'absolute',
+            position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
