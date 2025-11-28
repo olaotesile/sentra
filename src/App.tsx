@@ -311,7 +311,26 @@ function App() {
     <div className="app">
       <TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
-      <MapComponent userLocation={userLocation} alerts={alerts} />
+      {/* Conditionally render MapComponent to save memory when creating alert */}
+      {!isCreateOpen && (
+        <MapComponent
+          alerts={alerts}
+          userLocation={userLocation}
+        />
+      )}
+
+      {/* Show a placeholder background when map is hidden */}
+      {isCreateOpen && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#1a1f2e',
+          zIndex: 0
+        }} />
+      )}
 
       <BottomBar
         onCreateClick={() => setIsCreateOpen(true)}
