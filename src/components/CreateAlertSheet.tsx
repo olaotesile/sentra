@@ -75,9 +75,25 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setEvidence(e.target.files[0]);
-            setAudioURL(null); // Clear audio if file is selected
+            const file = e.target.files[0];
+
+            // Check file size (limit to 50MB to prevent memory issues)
+            const maxSize = 50 * 1024 * 1024; // 50MB
+            if (file.size > maxSize) {
+                alert('File is too large. Please choose a file smaller than 50MB.');
+                return;
+            }
+
+            // Clean up old audio URL if it exists
+            if (audioURL) {
+                URL.revokeObjectURL(audioURL);
+                setAudioURL(null);
+            }
+
+            setEvidence(file);
         }
+        // Reset the input value to allow selecting the same file again
+        e.target.value = '';
     };
 
     const handleVoiceRecord = async () => {
@@ -150,7 +166,6 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
             <input
                 type="file"
                 accept="image/*"
-                capture="environment"
                 ref={photoInputRef}
                 style={{ display: 'none' }}
                 onChange={handleFileSelect}
@@ -158,7 +173,6 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
             <input
                 type="file"
                 accept="video/*"
-                capture="environment"
                 ref={videoInputRef}
                 style={{ display: 'none' }}
                 onChange={handleFileSelect}
