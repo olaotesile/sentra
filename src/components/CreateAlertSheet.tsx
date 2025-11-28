@@ -74,26 +74,36 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
+        try {
+            // Prevent any default form submission behavior
+            e.preventDefault();
+            e.stopPropagation();
 
-            // Check file size (limit to 50MB to prevent memory issues)
-            const maxSize = 50 * 1024 * 1024; // 50MB
-            if (file.size > maxSize) {
-                alert('File is too large. Please choose a file smaller than 50MB.');
-                return;
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+
+                // Check file size (limit to 10MB to prevent memory issues)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    alert('File is too large. Please choose a file smaller than 10MB.');
+                    e.target.value = '';
+                    return;
+                }
+
+                // Clean up old audio URL if it exists
+                if (audioURL) {
+                    URL.revokeObjectURL(audioURL);
+                    setAudioURL(null);
+                }
+
+                setEvidence(file);
             }
-
-            // Clean up old audio URL if it exists
-            if (audioURL) {
-                URL.revokeObjectURL(audioURL);
-                setAudioURL(null);
-            }
-
-            setEvidence(file);
+            // Reset the input value to allow selecting the same file again
+            e.target.value = '';
+        } catch (error) {
+            console.error("Error selecting file:", error);
+            alert("An error occurred while selecting the file.");
         }
-        // Reset the input value to allow selecting the same file again
-        e.target.value = '';
     };
 
     const handleVoiceRecord = async () => {
