@@ -205,12 +205,62 @@ function App() {
     setUserLocation({ lat: 6.5244, lng: 3.3792 });
   };
 
-  const handleCreateAlert = (type: AlertType, description: string, evidenceFile: File | null) => {
+  const compressImage = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Resize if too large (max 1200px)
+          const maxSize = 1200;
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG with 0.7 quality
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleCreateAlert = async (type: AlertType, description: string, evidenceFile: File | null) => {
     if (!userLocation) return;
 
-    // Create a local URL for the evidence if it exists
-    // Note: We don't revoke this URL immediately as it needs to persist for the alert
-    const evidenceUrl = evidenceFile ? URL.createObjectURL(evidenceFile) : undefined;
+    let evidenceUrl: string | undefined = undefined;
+
+    // Only process image files to prevent memory issues
+    if (evidenceFile && evidenceFile.type.startsWith('image/')) {
+      try {
+        // Compress image to base64 to avoid blob URL memory leaks
+        evidenceUrl = await compressImage(evidenceFile);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        alert('Failed to process image. Please try a smaller file.');
+        return;
+      }
+    }
+    // For videos and audio, just use a placeholder to avoid memory issues
+    else if (evidenceFile) {
+      evidenceUrl = 'media_attached';
+    }
 
     const newAlert: Alert = {
       id: Date.now().toString(),
