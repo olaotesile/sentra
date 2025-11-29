@@ -77,19 +77,9 @@ function App() {
     // Real-time subscription
     const subscription = supabase
       .channel('alerts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const newItem = payload.new as any;
-          // Need to parse location again
-          let lat = 0;
-          let lng = 0;
-          // Note: Realtime payload might differ for geography types.
-          // Often it's better to refetch or just handle the basic fields.
-          // For now, let's just refetch to be safe and simple.
-          fetchAlerts();
-        } else if (payload.eventType === 'UPDATE') {
-          fetchAlerts();
-        }
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => {
+        // Refetch all alerts when any change occurs
+        fetchAlerts();
       })
       .subscribe();
 
