@@ -1,3 +1,4 @@
+// Sentra Security Alert App
 import { useState, useEffect } from 'react';
 import { MapComponent } from './components/MapComponent';
 import { TopBar } from './components/TopBar';
@@ -115,16 +116,22 @@ function App() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [locationPermissionGranted]);
 
+
   const handleAllowLocation = () => {
     setShowLocationPrompt(false);
     setLocationPermissionGranted(true);
   };
+
+
+
 
   const handleDenyLocation = () => {
     setShowLocationPrompt(false);
     // Set fallback location
     setUserLocation({ lat: 6.5244, lng: 3.3792 });
   };
+
+
 
   const compressImage = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
