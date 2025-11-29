@@ -33,18 +33,10 @@ export const CreateAlertSheet: React.FC<CreateAlertSheetProps> = ({ isOpen, onCl
     const audioChunksRef = useRef<Blob[]>([]);
     const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
-    // Fetch location name when user location changes
+    // Display coordinates in the sheet - actual location name is fetched when saving the alert
     useEffect(() => {
         if (userLocation && isOpen) {
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`)
-                .then(res => res.json())
-                .then(data => {
-                    const name = data.display_name || `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
-                    setLocationName(name);
-                })
-                .catch(() => {
-                    setLocationName(`${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`);
-                });
+            setLocationName(`${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`);
         }
     }, [userLocation, isOpen]);
 

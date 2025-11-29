@@ -15,4 +15,5 @@ export interface Alert {
   downvotes: number;
   evidence?: string; // URL to image/video
   resolved: boolean;
+  location_name?: string; // Reverse-geocoded location name
 }

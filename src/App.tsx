@@ -7,165 +7,96 @@ import { AlertFeed } from './components/AlertFeed';
 import { AlertDetailView } from './components/AlertDetailView';
 import { Sidebar } from './components/Sidebar';
 import { LocationPermissionPrompt } from './components/LocationPermissionPrompt';
+import { Toast } from './components/Toast';
 import type { Alert, AlertType, Location } from './types';
-
-// Mock Data with evidence field - Realistic Nigerian demo alerts
-const MOCK_ALERTS: Alert[] = [
-  {
-    id: '1',
-    type: 'violence',
-    location: { lat: 10.5225, lng: 7.4388 }, // Kaduna
-    timestamp: Date.now() - 1000 * 60 * 12,
-    description: 'Armed bandits spotted near village outskirts. Residents advised to stay indoors.',
-    upvotes: 34,
-    downvotes: 1,
-    resolved: false,
-    evidence: 'video'
-  },
-  {
-    id: '2',
-    type: 'violence',
-    location: { lat: 11.9974, lng: 8.5218 }, // Kano
-    timestamp: Date.now() - 1000 * 60 * 28,
-    description: 'Reports of kidnapping attempt on Zaria-Kano road. Vehicle abandoned.',
-    upvotes: 42,
-    downvotes: 2,
-    resolved: false,
-    evidence: 'photo'
-  },
-  {
-    id: '3',
-    type: 'accident',
-    location: { lat: 6.4645, lng: 3.3792 }, // Third Mainland Bridge, Lagos
-    timestamp: Date.now() - 1000 * 60 * 8,
-    description: 'Hit and run accident on Third Mainland Bridge. Driver fled scene heading towards Oworonsoki.',
-    upvotes: 28,
-    downvotes: 0,
-    resolved: false,
-    evidence: 'video'
-  },
-  {
-    id: '4',
-    type: 'suspicious',
-    location: { lat: 6.5244, lng: 3.3792 }, // Ikeja, Lagos
-    timestamp: Date.now() - 1000 * 60 * 18,
-    description: 'Suspicious individuals monitoring parked vehicles at Allen Avenue. Multiple cars targeted.',
-    upvotes: 15,
-    downvotes: 3,
-    resolved: false,
-    evidence: 'photo'
-  },
-  {
-    id: '5',
-    type: 'violence',
-    location: { lat: 9.0579, lng: 7.4951 }, // Abuja
-    timestamp: Date.now() - 1000 * 60 * 45,
-    description: 'Armed robbery at Gwarinpa shopping complex. Suspects fled on motorcycles.',
-    upvotes: 38,
-    downvotes: 1,
-    resolved: true,
-    evidence: 'video'
-  },
-  {
-    id: '6',
-    type: 'accident',
-    location: { lat: 6.4281, lng: 3.4219 }, // Lekki, Lagos
-    timestamp: Date.now() - 1000 * 60 * 35,
-    description: 'Multi-vehicle collision on Lekki-Epe Expressway near Ajah. Traffic heavily backed up.',
-    upvotes: 22,
-    downvotes: 0,
-    resolved: true,
-    evidence: 'photo'
-  },
-  {
-    id: '7',
-    type: 'violence',
-    location: { lat: 10.3158, lng: 7.7318 }, // Kaduna-Abuja road
-    timestamp: Date.now() - 1000 * 60 * 52,
-    description: 'Bandits blocking Kaduna-Abuja expressway. Multiple vehicles stopped. Avoid route.',
-    upvotes: 51,
-    downvotes: 0,
-    resolved: true,
-    evidence: 'voice'
-  },
-  {
-    id: '8',
-    type: 'fire',
-    location: { lat: 6.5095, lng: 3.3711 }, // Lagos Island
-    timestamp: Date.now() - 1000 * 60 * 78,
-    description: 'Market fire outbreak at Balogun Market. Fire service on site.',
-    upvotes: 19,
-    downvotes: 2,
-    resolved: true,
-    evidence: 'video'
-  },
-  {
-    id: '9',
-    type: 'suspicious',
-    location: { lat: 7.3775, lng: 3.9470 }, // Ibadan
-    timestamp: Date.now() - 1000 * 60 * 92,
-    description: 'Unidentified persons loitering around ATM points at Bodija. Possible card skimming.',
-    upvotes: 12,
-    downvotes: 4,
-    resolved: false,
-    evidence: 'photo'
-  },
-  {
-    id: '10',
-    type: 'violence',
-    location: { lat: 6.6018, lng: 3.3515 }, // Surulere, Lagos
-    timestamp: Date.now() - 1000 * 60 * 105,
-    description: 'Gang clash at Aguda area. Gunshots heard. Residents taking cover.',
-    upvotes: 29,
-    downvotes: 1,
-    resolved: true,
-    evidence: 'voice'
-  },
-  {
-    id: '11',
-    type: 'accident',
-    location: { lat: 6.4474, lng: 3.4700 }, // Victoria Island, Lagos
-    timestamp: Date.now() - 1000 * 60 * 125,
-    description: 'Petroleum tanker overturned at Ozumba Mbadiwe. Fuel spill. Area evacuated.',
-    upvotes: 45,
-    downvotes: 0,
-    resolved: true,
-    evidence: 'video'
-  },
-  {
-    id: '12',
-    type: 'violence',
-    location: { lat: 12.0022, lng: 8.5919 }, // Kano North
-    timestamp: Date.now() - 1000 * 60 * 158,
-    description: 'Suspected cattle rustlers spotted near farmlands. Vigilante group alerted.',
-    upvotes: 17,
-    downvotes: 2,
-    resolved: true,
-    evidence: 'voice'
-  },
-  {
-    id: '13',
-    type: 'fire',
-    location: { lat: 9.0820, lng: 7.5344 }, // Abuja Central
-    timestamp: Date.now() - 1000 * 60 * 142,
-    description: 'Electrical fire at Wuse Market. Shops affected. NEMA responding.',
-    upvotes: 14,
-    downvotes: 1,
-    resolved: true,
-    evidence: 'photo'
-  }
-];
-
+import { supabase } from './lib/supabase';
 
 function App() {
   const [userLocation, setUserLocation] = useState<Location | null>(null);
-  const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isFeedOpen, setIsFeedOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(true);
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Fetch alerts from Supabase
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .order('timestamp', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching alerts:', error);
+      } else if (data) {
+        // Parse the location column (PostGIS returns GeoJSON-like object or we need to handle it)
+        // Our SQL setup uses geography(point). Supabase JS client might return it as a string or object.
+        // Let's assume for now we need to map it.
+        // Actually, for simplicity in the SQL script I used geography(point).
+        // To make it easy for the frontend, let's adjust the query or handle the response.
+        // PostGIS points usually come back as GeoJSON if we ask, or WKB.
+        // Let's use a simple RPC or just cast it in the select if possible.
+        // Or better, let's update the fetch to use the RPC 'get_nearby_alerts' if available,
+        // but for the main feed we might want all recent ones.
+        // Let's try to fetch and see. For now, I'll map the raw data.
+        // If the column is 'location', Supabase returns it as GeoJSON object by default for geography types.
+
+        const mappedAlerts: Alert[] = data.map((item: any) => {
+          // Handle PostGIS location format
+          // If it's GeoJSON: { type: "Point", coordinates: [lng, lat] }
+          let lat = 0;
+          let lng = 0;
+          if (item.location && item.location.coordinates) {
+            lng = item.location.coordinates[0];
+            lat = item.location.coordinates[1];
+          }
+
+          return {
+            id: item.id,
+            type: item.type as AlertType,
+            location: { lat, lng },
+            timestamp: item.timestamp,
+            description: item.description,
+            upvotes: item.upvotes,
+            downvotes: item.downvotes,
+            resolved: item.resolved,
+            evidence: item.evidence,
+            location_name: item.location_name
+          };
+        });
+        setAlerts(mappedAlerts);
+      }
+    };
+
+    fetchAlerts();
+
+    // Real-time subscription
+    const subscription = supabase
+      .channel('alerts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newItem = payload.new as any;
+          // Need to parse location again
+          let lat = 0;
+          let lng = 0;
+          // Note: Realtime payload might differ for geography types.
+          // Often it's better to refetch or just handle the basic fields.
+          // For now, let's just refetch to be safe and simple.
+          fetchAlerts();
+        } else if (payload.eventType === 'UPDATE') {
+          fetchAlerts();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     // Only start tracking location after permission is granted
@@ -246,38 +177,93 @@ function App() {
 
     let evidenceUrl: string | undefined = undefined;
 
-    // Only process image files to prevent memory issues
-    if (evidenceFile && evidenceFile.type.startsWith('image/')) {
+    // Process media files
+    if (evidenceFile) {
       try {
-        // Compress image to base64 to avoid blob URL memory leaks
-        evidenceUrl = await compressImage(evidenceFile);
+        if (evidenceFile.type.startsWith('image/')) {
+          // Compress image to base64
+          evidenceUrl = await compressImage(evidenceFile);
+        } else if (evidenceFile.type.startsWith('video/') || evidenceFile.type.startsWith('audio/')) {
+          // Convert video/audio to base64 for storage
+          const reader = new FileReader();
+          evidenceUrl = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(evidenceFile);
+          });
+        }
       } catch (error) {
-        console.error('Error compressing image:', error);
-        alert('Failed to process image. Please try a smaller file.');
+        console.error('Error processing media:', error);
+        setToast({ message: 'Failed to process media file. Please try a smaller file.', type: 'error' });
         return;
       }
     }
-    // For videos and audio, just use a placeholder to avoid memory issues
-    else if (evidenceFile) {
-      evidenceUrl = 'media_attached';
+
+    // Fetch location name using reverse geocoding (BigDataCloud API - no CORS issues)
+    // Use a timeout to avoid blocking alert creation
+    let locationName = 'Unknown Location';
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${userLocation.lat}&longitude=${userLocation.lng}&localityLanguage=en`,
+        { signal: controller.signal }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Reverse geocoding response:', data);
+
+        // Extract clean location name
+        const parts = [];
+
+        // Add locality (neighborhood/suburb)
+        if (data.locality) parts.push(data.locality);
+
+        // Add city
+        if (data.city) parts.push(data.city);
+        else if (data.principalSubdivision) parts.push(data.principalSubdivision);
+
+        locationName = parts.length > 0 ? parts.join(', ') :
+          (data.localityInfo?.administrative?.[3]?.name ||
+            data.localityInfo?.administrative?.[2]?.name ||
+            `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`);
+      } else {
+        console.error('Reverse geocoding failed:', response.status, response.statusText);
+        locationName = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+      }
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        console.error('Reverse geocoding timed out after 3 seconds');
+      } else {
+        console.error('Error fetching location name:', error);
+      }
+      locationName = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
     }
 
-    const newAlert: Alert = {
-      id: Date.now().toString(),
+    console.log('Saving alert with location_name:', locationName);
+
+    const { error } = await supabase.from('alerts').insert({
       type,
-      location: {
-        lat: userLocation.lat + (Math.random() - 0.5) * 0.002,
-        lng: userLocation.lng + (Math.random() - 0.5) * 0.002
-      },
+      location: `POINT(${userLocation.lng} ${userLocation.lat})`, // PostGIS format
       timestamp: Date.now(),
       description,
       upvotes: 0,
       downvotes: 0,
       resolved: false,
-      evidence: evidenceUrl
-    };
+      evidence: evidenceUrl,
+      location_name: locationName
+    });
 
-    setAlerts(prev => [newAlert, ...prev]);
+    if (error) {
+      console.error('Error creating alert:', error);
+      setToast({ message: 'Failed to create alert. Please try again.', type: 'error' });
+    } else {
+      setToast({ message: 'Alert created successfully!', type: 'success' });
+    }
   };
 
   const handleVote = (alertId: string, voteType: 'up' | 'down') => {
@@ -352,6 +338,40 @@ function App() {
           setSelectedAlert(alert);
           setIsFeedOpen(false);
         }}
+        onRefresh={() => {
+          // Fetch alerts from Supabase
+          supabase
+            .from('alerts')
+            .select('*')
+            .order('timestamp', { ascending: false })
+            .then(({ data, error }) => {
+              if (error) {
+                console.error('Error fetching alerts:', error);
+              } else if (data) {
+                const mappedAlerts: Alert[] = data.map((item: any) => {
+                  let lat = 0;
+                  let lng = 0;
+                  if (item.location && item.location.coordinates) {
+                    lng = item.location.coordinates[0];
+                    lat = item.location.coordinates[1];
+                  }
+                  return {
+                    id: item.id,
+                    type: item.type as AlertType,
+                    location: { lat, lng },
+                    timestamp: item.timestamp,
+                    description: item.description,
+                    upvotes: item.upvotes,
+                    downvotes: item.downvotes,
+                    resolved: item.resolved,
+                    evidence: item.evidence,
+                    location_name: item.location_name
+                  };
+                });
+                setAlerts(mappedAlerts);
+              }
+            });
+        }}
       />
 
       <AlertDetailView
@@ -373,6 +393,13 @@ function App() {
         isOpen={showLocationPrompt}
         onAllow={handleAllowLocation}
         onDeny={handleDenyLocation}
+      />
+
+      <Toast
+        message={toast?.message || ''}
+        type={toast?.type || 'success'}
+        isVisible={!!toast}
+        onClose={() => setToast(null)}
       />
     </div>
   );

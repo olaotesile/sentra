@@ -25,27 +25,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
         return '1 day ago';
     };
 
-    const getLocationName = (lat: number, lng: number): string => {
-        // Map coordinates to Nigerian locations
-        const locations: { [key: string]: string } = {
-            '10.5225,7.4388': 'Kaduna',
-            '11.9974,8.5218': 'Zaria-Kano Road',
-            '6.4645,3.3792': 'Third Mainland Bridge',
-            '6.5244,3.3792': 'Allen Avenue, Ikeja',
-            '9.0579,7.4951': 'Gwarinpa, Abuja',
-            '6.4281,3.4219': 'Lekki-Epe Expressway',
-            '10.3158,7.7318': 'Kaduna-Abuja Expressway',
-            '6.5095,3.3711': 'Balogun, Lagos Island',
-            '7.3775,3.9470': 'Bodija, Ibadan',
-            '6.6018,3.3515': 'Aguda, Surulere',
-            '6.4474,3.4700': 'Victoria Island',
-            '12.0022,8.5919': 'Kano',
-            '9.0820,7.5344': 'Wuse Market, Abuja'
-        };
-
-        const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
-        return locations[key] || 'Nigeria';
-    };
+    const displayLocation = alert.location_name || `${alert.location.lat.toFixed(4)}, ${alert.location.lng.toFixed(4)}`;
 
     return (
         <div
@@ -105,9 +85,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}>
-                    {alert.evidence === 'photo' && (
+                    {/* Check if evidence is a base64 image */}
+                    {alert.evidence.startsWith('data:image') ? (
                         <img
-                            src={`https://picsum.photos/400/200?random=${alert.id}`}
+                            src={alert.evidence}
                             alt="Alert evidence"
                             style={{
                                 width: '100%',
@@ -115,8 +96,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
                                 objectFit: 'cover'
                             }}
                         />
-                    )}
-                    {alert.evidence === 'video' && (
+                    ) : alert.evidence.startsWith('data:video') ? (
                         <div style={{
                             width: '100%',
                             height: '100%',
@@ -132,8 +112,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
                             </svg>
                             <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Video Evidence</span>
                         </div>
-                    )}
-                    {alert.evidence === 'voice' && (
+                    ) : alert.evidence.startsWith('data:audio') ? (
                         <div style={{
                             width: '100%',
                             height: '100%',
@@ -150,7 +129,43 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
                                 <line x1="12" y1="19" x2="12" y2="23" />
                                 <line x1="8" y1="23" x2="16" y2="23" />
                             </svg>
-                            <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Voice Note</span>
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Audio Evidence</span>
+                        </div>
+                    ) : alert.evidence === 'media_attached' ? (
+                        <div style={{
+                            width: '100%',
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #1a1d23 0%, #24272f 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                        }}>
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                <line x1="12" y1="19" x2="12" y2="23" />
+                                <line x1="8" y1="23" x2="16" y2="23" />
+                            </svg>
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Media Attached</span>
+                        </div>
+                    ) : (
+                        <div style={{
+                            width: '100%',
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #1a1d23 0%, #24272f 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                        }}>
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                                <polyline points="13 2 13 9 20 9" />
+                            </svg>
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>Evidence Attached</span>
                         </div>
                     )}
                 </div>
@@ -160,7 +175,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
                     <MapPin size={14} />
-                    <span>{getLocationName(alert.location.lat, alert.location.lng)}</span>
+                    <span>{displayLocation}</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '16px' }}>

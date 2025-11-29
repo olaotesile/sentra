@@ -15,29 +15,6 @@ export const AlertDetailView: React.FC<AlertDetailViewProps> = ({ alert, onClose
 
     if (!alert) return null;
 
-    // Get location name based on coordinates
-    const getLocationName = (lat: number, lng: number): string => {
-        // Map coordinates to Nigerian locations
-        const locations: { [key: string]: string } = {
-            '10.5225,7.4388': 'Kaduna',
-            '11.9974,8.5218': 'Zaria-Kano Road',
-            '6.4645,3.3792': 'Third Mainland Bridge, Lagos',
-            '6.5244,3.3792': 'Allen Avenue, Ikeja',
-            '9.0579,7.4951': 'Gwarinpa, Abuja',
-            '6.4281,3.4219': 'Lekki-Epe Expressway',
-            '10.3158,7.7318': 'Kaduna-Abuja Expressway',
-            '6.5095,3.3711': 'Balogun Market, Lagos Island',
-            '7.3775,3.9470': 'Bodija, Ibadan',
-            '6.6018,3.3515': 'Aguda, Surulere',
-            '6.4474,3.4700': 'Ozumba Mbadiwe, Victoria Island',
-            '12.0022,8.5919': 'Kano',
-            '9.0820,7.5344': 'Wuse Market, Abuja'
-        };
-
-        const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
-        return locations[key] || 'Nigeria';
-    };
-
     const formatTime = (timestamp: number) => {
         const minutes = Math.floor((Date.now() - timestamp) / 60000);
         if (minutes < 60) return `${minutes} mins ago`;
@@ -82,7 +59,7 @@ export const AlertDetailView: React.FC<AlertDetailViewProps> = ({ alert, onClose
     };
 
     const credibility = Math.round((voteCount.up / (voteCount.up + voteCount.down + 1)) * 100);
-    const locationName = getLocationName(alert.location.lat, alert.location.lng);
+    const locationName = alert.location_name || `${alert.location.lat.toFixed(4)}, ${alert.location.lng.toFixed(4)}`;
 
     return (
         <div className="animate-slide-up" style={{
